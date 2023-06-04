@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Get branch name
+branch_name=$(git branch | grep "^\*" | sed "s/\* //")
+
+# Parse ticket information
+ticket_ref_matcher='/[^\\]+\/([^\\]+)\/([0-9]+).*/'
+captured_team='"$1"'
+catpured_ticketNumber='"$2"'
+team=$(perl -e "print('$branch_name' =~ $ticket_ref_matcher ? $captured_team : '')")
+ticket_ref=$(perl -e "print('$branch_name' =~ $ticket_ref_matcher ? $catpured_ticketNumber : '')")
+
+# Exit if no reference could be found 
+if [ ${#ticket_ref} -eq 0 ]
+then
+	exit 0
+fi
+
+# Build commit message
+commit_message="
+
+Ref #$team-$ticket_ref"
+
+# Write commit message at top of file
+commit_message_file_path=$1
+initial_file_content=$(cat $commit_message_file_path)
+echo "$commit_message" > $commit_message_file_path
+echo "$initial_file_content" >> $commit_message_file_path
